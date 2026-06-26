@@ -1,5 +1,7 @@
 package com.gym.nutrition;
 
+import android.app.AlertDialog;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.view.View;
@@ -15,6 +17,8 @@ import java.util.Scanner;
 public class MainActivity extends AppCompatActivity {
     HashMap<String, Food> db = new HashMap<>();
     Food selected = null;
+    SharedPreferences prefs;
+    String lang = "en";
     
     class Food {
         String name, emoji, tip;
@@ -30,72 +34,175 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().permitAll().build());
         
-        db.put("egg", new Food("Boiled Egg", "🥚", 128, 12.3, 8.8, 0.2, "Boiled egg best! Raw egg er protein 50% absorb hoy, boiled te 90%+"));
-        db.put("chicken", new Food("Chicken Breast", "🍗", 165, 31, 3.6, 0, "Chicken breast = best protein! 100g te 31g protein"));
-        db.put("rice", new Food("White Rice", "🍚", 130, 2.7, 0.3, 28, "Rice = energy source. Post-workout khao for glycogen refill"));
-        db.put("fish", new Food("Salmon Fish", "🐟", 208, 20, 13, 0, "Fish e Omega-3 thake - muscle recovery er jonno best!"));
-        db.put("paneer", new Food("Paneer", "🧀", 265, 18, 21, 1.2, "Paneer = vegetarian protein! 100g te 18g protein"));
-        db.put("oats", new Food("Oats", "🌾", 389, 16.9, 6.9, 66, "Oats = complex carbs. Breakfast e ideal, slow energy release"));
-        db.put("banana", new Food("Banana", "🍌", 89, 1.1, 0.3, 23, "Banana = pre-workout energy! Potassium thake cramp prevent kore"));
-        db.put("milk", new Food("Milk", "🥛", 42, 3.4, 1, 5, "Milk = casein protein! Raat e khao slow release"));
-        db.put("peanut", new Food("Peanut Butter", "🥜", 588, 25, 50, 20, "Peanut butter = healthy fat + protein! Bulking e best"));
-        db.put("whey", new Food("Whey Protein", "🥤", 400, 80, 5, 10, "Whey = fast absorbing! Post-workout 30 min e khao"));
-        db.put("potato", new Food("Sweet Potato", "🍠", 86, 1.6, 0.1, 20, "Sweet potato = complex carbs + fiber! Cutting e best"));
-        db.put("broccoli", new Food("Broccoli", "🥦", 34, 2.8, 0.4, 7, "Broccoli = low cal high fiber! Cutting e must"));
-        db.put("almond", new Food("Almonds", "🌰", 579, 21, 50, 22, "Almonds = healthy fat + vitamin E! Snack e khao"));
-        db.put("yogurt", new Food("Greek Yogurt", "🍦", 59, 10, 0.4, 3.6, "Greek yogurt = probiotic + protein! Gut health er jonno"));
-        db.put("beef", new Food("Beef", "🥩", 250, 26, 17, 0, "Beef = creatine + iron! Strength training er jonno best"));
+        prefs = getSharedPreferences("GymNutrition", MODE_PRIVATE);
+        lang = prefs.getString("language", "en");
         
-        String[] items = {"🥚 Egg", "🍗 Chicken", "🍚 Rice", "🐟 Fish", "🧀 Paneer", "🌾 Oats", "🍌 Banana", "🥛 Milk", "🥜 Peanut Butter", "🥤 Whey", "🍠 Sweet Potato", "🥦 Broccoli", "🌰 Almonds", "🍦 Greek Yogurt", "🥩 Beef"};
+        initDB();
+        initViews();
+        updateLanguage();
+    }
+    
+    void initDB() {
+        db.put("egg", new Food(getString("Boiled Egg"), "🥚", 128, 12.3, 8.8, 0.2, "Best protein source! 90% absorption"));
+        db.put("chicken", new Food(getString("Chicken Breast"), "🍗", 165, 31, 3.6, 0, "31g protein per 100g! Grill for less oil"));
+        db.put("rice", new Food(getString("White Rice"), "🍚", 130, 2.7, 0.3, 28, "Post-workout energy! Glycogen refill"));
+        db.put("fish", new Food(getString("Salmon Fish"), "🐟", 208, 20, 13, 0, "Omega-3 for muscle recovery!"));
+        db.put("paneer", new Food(getString("Paneer"), "🧀", 265, 18, 21, 1.2, "Vegetarian protein! 18g per 100g"));
+        db.put("oats", new Food(getString("Oats"), "🌾", 389, 16.9, 6.9, 66, "Complex carbs! Slow energy release"));
+        db.put("banana", new Food(getString("Banana"), "🍌", 89, 1.1, 0.3, 23, "Pre-workout! Potassium prevents cramps"));
+        db.put("milk", new Food(getString("Milk"), "🥛", 42, 3.4, 1, 5, "Casein protein! Slow release at night"));
+        db.put("peanut", new Food(getString("Peanut Butter"), "🥜", 588, 25, 50, 20, "Healthy fats + protein! Bulking best"));
+        db.put("whey", new Food(getString("Whey Protein"), "🥤", 400, 80, 5, 10, "Fast absorbing! Take within 30min post-workout"));
+        db.put("potato", new Food(getString("Sweet Potato"), "🍠", 86, 1.6, 0.1, 20, "Complex carbs + fiber! Cutting best"));
+        db.put("broccoli", new Food(getString("Broccoli"), "🥦", 34, 2.8, 0.4, 7, "Low cal high fiber! Cutting must"));
+        db.put("almond", new Food(getString("Almonds"), "🌰", 579, 21, 50, 22, "Healthy fats + Vitamin E! Snack time"));
+        db.put("yogurt", new Food(getString("Greek Yogurt"), "🍦", 59, 10, 0.4, 3.6, "Probiotic + protein! Gut health"));
+        db.put("beef", new Food(getString("Beef"), "🥩", 250, 26, 17, 0, "Creatine + iron! Strength training"));
+        db.put("roti", new Food(getString("Tandoori Roti"), "🫓", 299, 7.85, 9.2, 46.13, "Whole wheat! Better than naan"));
+        db.put("dal", new Food(getString("Dal/Lentils"), "🥣", 116, 9, 0.4, 20, "Plant protein! Daily staple"));
+        db.put("sabji", new Food(getString("Mixed Sabji"), "🥗", 65, 2.5, 3, 8, "Vitamins + fiber! Eat daily"));
+        db.put("soya", new Food(getString("Soya Chunks"), "🫘", 336, 52, 0.5, 33, "Highest plant protein! 52g per 100g"));
+        db.put("tandoori", new Food(getString("Tandoori Chicken"), "🍗", 273, 30, 14, 5, "Low fat! Tandoor cooking reduces oil"));
+        db.put("chana", new Food(getString("Chana/Chickpeas"), "🫘", 164, 8.9, 2.6, 27, "Fiber + protein! Satiety king"));
+        db.put("curd", new Food(getString("Curd/Yogurt"), "🥣", 98, 11, 4.3, 3.4, "Probiotic! Digestion helper"));
+        db.put("ghee", new Food(getString("Ghee"), "🧈", 900, 0, 100, 0, "Healthy fats! Bulletproof coffee"));
+    }
+    
+    String getString(String en) {
+        if (lang.equals("bn")) {
+            switch(en) {
+                case "Boiled Egg": return "সিদ্ধ ডিম";
+                case "Chicken Breast": return "চিকেন ব্রেস্ট";
+                case "White Rice": return "সাদা ভাত";
+                case "Salmon Fish": return "স্যালমন মাছ";
+                case "Paneer": return "পনির";
+                case "Oats": return "ওটস";
+                case "Banana": return "কলা";
+                case "Milk": return "দুধ";
+                case "Peanut Butter": return "পিনাট বাটার";
+                case "Whey Protein": return "হুয়ে প্রোটিন";
+                case "Sweet Potato": return "মিষ্টি আলু";
+                case "Broccoli": return "ব্রোকলি";
+                case "Almonds": return "বাদাম";
+                case "Greek Yogurt": return "গ্রিক দই";
+                case "Beef": return "গরুর মাংস";
+                case "Tandoori Roti": return "তন্দুরি রুটি";
+                case "Dal/Lentils": return "ডাল";
+                case "Mixed Sabji": return "মিক্সড সবজি";
+                case "Soya Chunks": return "সয়া চাংকস";
+                case "Tandoori Chicken": return "তন্দুরি চিকেন";
+                case "Chana/Chickpeas": return "ছোলা";
+                case "Curd/Yogurt": return "দই";
+                case "Ghee": return "ঘি";
+                default: return en;
+            }
+        } else if (lang.equals("hi")) {
+            switch(en) {
+                case "Boiled Egg": return "उबला अंडा";
+                case "Chicken Breast": return "चिकन ब्रेस्ट";
+                case "White Rice": return "सफेद चावल";
+                case "Salmon Fish": return "सैलमन मछली";
+                case "Paneer": return "पनीर";
+                case "Oats": return "ओट्स";
+                case "Banana": return "केला";
+                case "Milk": return "दूध";
+                case "Peanut Butter": return "मूंगफली बटर";
+                case "Whey Protein": return "व्हे प्रोटीन";
+                case "Sweet Potato": return "शकरकंदी";
+                case "Broccoli": return "ब्रोकोली";
+                case "Almonds": return "बादाम";
+                case "Greek Yogurt": return "ग्रीक दही";
+                case "Beef": return "बीफ";
+                case "Tandoori Roti": return "तंदूरी रोटी";
+                case "Dal/Lentils": return "दाल";
+                case "Mixed Sabji": return "मिक्स सब्जी";
+                case "Soya Chunks": return "सोया चंक्स";
+                case "Tandoori Chicken": return "तंदूरी चिकन";
+                case "Chana/Chickpeas": return "छोले";
+                case "Curd/Yogurt": return "दही";
+                case "Ghee": return "घी";
+                default: return en;
+            }
+        }
+        return en;
+    }
+    
+    void initViews() {
+        String[] items = new String[db.size()];
+        int i = 0;
+        for (Food f : db.values()) {
+            items[i++] = f.emoji + " " + f.name;
+        }
+        
         Spinner sp = findViewById(R.id.spinnerFood);
         sp.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, items));
         
         findViewById(R.id.btnCalc).setOnClickListener(v -> {
-            String[] keys = {"egg","chicken","rice","fish","paneer","oats","banana","milk","peanut","whey","potato","broccoli","almond","yogurt","beef"};
-            Food f = db.get(keys[sp.getSelectedItemPosition()]);
+            int pos = sp.getSelectedItemPosition();
+            String[] keys = db.keySet().toArray(new String[0]);
+            Food f = db.get(keys[pos]);
             double w = Double.parseDouble(((EditText)findViewById(R.id.etWeight)).getText().toString().isEmpty() ? "100" : ((EditText)findViewById(R.id.etWeight)).getText().toString());
             int q = Integer.parseInt(((EditText)findViewById(R.id.etQty)).getText().toString().isEmpty() ? "1" : ((EditText)findViewById(R.id.etQty)).getText().toString());
             double r = w / 100;
             show(f.name, f.emoji, f.cal*r*q, f.pro*r*q, f.fat*r*q, f.carbs*r*q, f.tip);
         });
         
-        findViewById(R.id.btnSearch).setOnClickListener(v -> {
-            String q = ((EditText)findViewById(R.id.etSearch)).getText().toString().trim();
-            if(q.isEmpty()) return;
-            try {
-                HttpURLConnection c = (HttpURLConnection)new URL("https://api.nal.usda.gov/fdc/v1/foods/search?api_key=DEMO_KEY&query="+q+"&pageSize=3").openConnection();
-                Scanner s = new Scanner(c.getInputStream());
-                StringBuilder b = new StringBuilder();
-                while(s.hasNext()) b.append(s.nextLine());
-                JSONArray foods = new JSONObject(b.toString()).getJSONArray("foods");
-                String[] res = new String[foods.length()];
-                for(int i=0;i<foods.length();i++) {
-                    JSONObject f = foods.getJSONObject(i);
-                    double cal=0,pro=0,fat=0,carbs=0;
-                    for(int j=0;j<f.getJSONArray("foodNutrients").length();j++) {
-                        JSONObject n = f.getJSONArray("foodNutrients").getJSONObject(j);
-                        String nn = n.getString("nutrientName");
-                        if(nn.equals("Energy")) cal=n.getDouble("value");
-                        else if(nn.equals("Protein")) pro=n.getDouble("value");
-                        else if(nn.contains("fat")) fat=n.getDouble("value");
-                        else if(nn.contains("Carbohydrate")) carbs=n.getDouble("value");
-                    }
-                    res[i] = f.getString("description")+"|"+cal+"|"+pro+"|"+fat+"|"+carbs;
+        findViewById(R.id.btnSearch).setOnClickListener(v -> searchOnline());
+        
+        findViewById(R.id.btnSettings).setOnClickListener(v -> showSettings());
+    }
+    
+    void searchOnline() {
+        String q = ((EditText)findViewById(R.id.etSearch)).getText().toString().trim();
+        if(q.isEmpty()) return;
+        try {
+            HttpURLConnection c = (HttpURLConnection)new URL("https://api.nal.usda.gov/fdc/v1/foods/search?api_key=DEMO_KEY&query="+q+"&pageSize=5").openConnection();
+            Scanner s = new Scanner(c.getInputStream());
+            StringBuilder b = new StringBuilder();
+            while(s.hasNext()) b.append(s.nextLine());
+            JSONArray foods = new JSONObject(b.toString()).getJSONArray("foods");
+            
+            LinearLayout resultsContainer = findViewById(R.id.searchResultsContainer);
+            resultsContainer.removeAllViews();
+            
+            for(int i=0;i<foods.length();i++) {
+                JSONObject f = foods.getJSONObject(i);
+                double cal=0,pro=0,fat=0,carbs=0;
+                for(int j=0;j<f.getJSONArray("foodNutrients").length();j++) {
+                    JSONObject n = f.getJSONArray("foodNutrients").getJSONObject(j);
+                    String nn = n.getString("nutrientName");
+                    if(nn.equals("Energy")) cal=n.getDouble("value");
+                    else if(nn.equals("Protein")) pro=n.getDouble("value");
+                    else if(nn.contains("fat")) fat=n.getDouble("value");
+                    else if(nn.contains("Carbohydrate")) carbs=n.getDouble("value");
                 }
-                ListView lv = findViewById(R.id.listSearchResults);
-                lv.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, res));
-                lv.setOnItemClickListener((p,vi,pos,id) -> {
-                    String[] pts = res[pos].split("\\|");
-                    selected = new Food(pts[0], "🌐", Double.parseDouble(pts[1]), Double.parseDouble(pts[2]), Double.parseDouble(pts[3]), Double.parseDouble(pts[4]), "Online data from USDA");
+                
+                Button btn = new Button(this);
+                btn.setText(f.getString("description") + "\n🔥 " + Math.round(cal) + " kcal | 💪 " + pro + "g | per 100g");
+                btn.setBackgroundColor(0xFF1a1a2e);
+                btn.setTextColor(0xFFFFFFFF);
+                btn.setPadding(20, 20, 20, 20);
+                btn.setLayoutParams(new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ));
+                ((LinearLayout.LayoutParams)btn.getLayoutParams()).setMargins(0, 8, 0, 8);
+                
+                final double fcal=cal, fpro=pro, ffat=fat, fcarbs=carbs;
+                final String fname = f.getString("description");
+                btn.setOnClickListener(v -> {
+                    selected = new Food(fname, "🌐", fcal, fpro, ffat, fcarbs, "Online data from USDA");
                     double w = Double.parseDouble(((EditText)findViewById(R.id.etWeight)).getText().toString().isEmpty() ? "100" : ((EditText)findViewById(R.id.etWeight)).getText().toString());
                     int qt = Integer.parseInt(((EditText)findViewById(R.id.etQty)).getText().toString().isEmpty() ? "1" : ((EditText)findViewById(R.id.etQty)).getText().toString());
                     double r = w / 100;
                     show(selected.name, selected.emoji, selected.cal*r*qt, selected.pro*r*qt, selected.fat*r*qt, selected.carbs*r*qt, selected.tip);
                 });
-            } catch(Exception e) {
-                Toast.makeText(this, "Internet error! Use offline mode.", Toast.LENGTH_LONG).show();
+                
+                resultsContainer.addView(btn);
             }
-        });
+        } catch(Exception e) {
+            Toast.makeText(this, "Internet error! Use offline mode.", Toast.LENGTH_LONG).show();
+        }
     }
     
     void show(String n, String e, double c, double p, double f, double cb, String tip) {
@@ -114,5 +221,40 @@ public class MainActivity extends AppCompatActivity {
         ((ProgressBar)findViewById(R.id.calBar)).setProgress(calPct);
         ((TextView)findViewById(R.id.tvProteinPct)).setText(proteinPct + "%");
         ((TextView)findViewById(R.id.tvCalPct)).setText(calPct + "%");
+    }
+    
+    void showSettings() {
+        String[] langs = {"English", "বাংলা (Bengali)", "हिंदी (Hindi)"};
+        new AlertDialog.Builder(this)
+            .setTitle("🌐 Select Language")
+            .setItems(langs, (dialog, which) -> {
+                String[] codes = {"en", "bn", "hi"};
+                lang = codes[which];
+                prefs.edit().putString("language", lang).apply();
+                recreate();
+            })
+            .show();
+    }
+    
+    void updateLanguage() {
+        if (lang.equals("bn")) {
+            ((TextView)findViewById(R.id.tvTitle)).setText("💪 জিম নিউট্রিশন");
+            ((EditText)findViewById(R.id.etWeight)).setHint("⚖️ ওজন (গ্রাম)");
+            ((EditText)findViewById(R.id.etQty)).setHint("🔢 পরিমাণ");
+            ((Button)findViewById(R.id.btnCalc)).setText("📹 হিসাব করুন");
+            ((EditText)findViewById(R.id.etSearch)).setHint("🔍 অনলাইনে খুঁজুন...");
+            ((Button)findViewById(R.id.btnSearch)).setText("🔍 অনলাইন সার্চ");
+            ((TextView)findViewById(R.id.tvOfflineLabel)).setText("📴 অফলাইন ফুড (23টি)");
+            ((TextView)findViewById(R.id.tvOnlineLabel)).setText("🌐 অনলাইন সার্চ");
+        } else if (lang.equals("hi")) {
+            ((TextView)findViewById(R.id.tvTitle)).setText("💪 जिम न्यूट्रिशन");
+            ((EditText)findViewById(R.id.etWeight)).setHint("⚖️ वजन (ग्राम)");
+            ((EditText)findViewById(R.id.etQty)).setHint("🔢 मात्रा");
+            ((Button)findViewById(R.id.btnCalc)).setText("📹 गणना करें");
+            ((EditText)findViewById(R.id.etSearch)).setHint("🔍 ऑनलाइन खोजें...");
+            ((Button)findViewById(R.id.btnSearch)).setText("🔍 ऑनलाइन सर्च");
+            ((TextView)findViewById(R.id.tvOfflineLabel)).setText("📴 ऑफलाइन फूड (23)");
+            ((TextView)findViewById(R.id.tvOnlineLabel)).setText("🌐 ऑनलाइन सर्च");
+        }
     }
 }
