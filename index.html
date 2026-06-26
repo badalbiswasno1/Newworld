@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gym Nutrition Calculator</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+        }
+        .container { max-width: 500px; margin: 0 auto; }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+        }
+        .header h1 {
+            font-size: 2rem;
+            background: linear-gradient(90deg, #e94560, #ff6b6b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+        .header p { color: #a0a0a0; font-size: 0.9rem; }
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        .card-title {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #e94560;
+        }
+        .input-group { margin-bottom: 20px; }
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #b0b0b0;
+            font-size: 0.9rem;
+        }
+        .input-wrapper {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        input[type="number"] {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            font-size: 1.1rem;
+            outline: none;
+            transition: all 0.3s;
+        }
+        input[type="number"]:focus {
+            border-color: #e94560;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .unit { color: #888; font-size: 0.9rem; min-width: 50px; }
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #e94560, #ff6b6b);
+            color: #fff;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(233, 69, 96, 0.4);
+        }
+        .btn:active { transform: translateY(0); }
+        .results { display: none; animation: fadeIn 0.5s ease; }
+        .results.show { display: block; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .macro-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .macro-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s;
+        }
+        .macro-card:hover { transform: scale(1.05); }
+        .macro-icon { font-size: 2rem; margin-bottom: 10px; }
+        .macro-value { font-size: 1.8rem; font-weight: bold; margin-bottom: 5px; }
+        .macro-label { color: #888; font-size: 0.85rem; }
+        .calories-card {
+            background: linear-gradient(135deg, rgba(233, 69, 96, 0.2), rgba(255, 107, 107, 0.2));
+            border: 1px solid rgba(233, 69, 96, 0.3);
+        }
+        .protein-card {
+            background: linear-gradient(135deg, rgba(78, 205, 196, 0.2), rgba(68, 160, 141, 0.2));
+            border: 1px solid rgba(78, 205, 196, 0.3);
+        }
+        .fat-card {
+            background: linear-gradient(135deg, rgba(247, 183, 49, 0.2), rgba(243, 156, 18, 0.2));
+            border: 1px solid rgba(247, 183, 49, 0.3);
+        }
+        .carbs-card {
+            background: linear-gradient(135deg, rgba(155, 89, 182, 0.2), rgba(142, 68, 173, 0.2));
+            border: 1px solid rgba(155, 89, 182, 0.3);
+        }
+        .info-section {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            border-left: 4px solid #e94560;
+        }
+        .info-section h3 { font-size: 1rem; margin-bottom: 10px; color: #e94560; }
+        .info-section p { color: #a0a0a0; font-size: 0.85rem; line-height: 1.6; }
+        .egg-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .egg-btn {
+            flex: 1;
+            min-width: 80px;
+            padding: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+        .egg-btn.active {
+            border-color: #e94560;
+            background: rgba(233, 69, 96, 0.2);
+        }
+        .egg-btn:hover { border-color: #e94560; }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #555;
+            font-size: 0.8rem;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+        .progress-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
+        .protein-progress { background: linear-gradient(90deg, #4ecdc4, #44a08d); }
+        .fat-progress { background: linear-gradient(90deg, #f7b731, #f39c12); }
+        .carbs-progress { background: linear-gradient(90deg, #9b59b6, #8e44ad); }
+        .daily-target {
+            margin-top: 15px;
+            padding: 15px;
+            background: rgba(78, 205, 196, 0.1);
+            border-radius: 12px;
+            border: 1px solid rgba(78, 205, 196, 0.2);
+        }
+        .daily-target h4 { color: #4ecdc4; margin-bottom: 10px; font-size: 0.95rem; }
+        .target-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+        }
+        .target-item span:first-child { color: #888; }
+        .target-item span:last-child { color: #fff; font-weight: bold; }
+        .food-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .food-btn {
+            flex: 1;
+            min-width: 100px;
+            padding: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+        .food-btn.active {
+            border-color: #e94560;
+            background: rgba(233, 69, 96, 0.2);
+        }
+        .food-btn:hover { border-color: #e94560; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💪 Gym Nutrition Calculator</h1>
+            <p>Dim, Chicken, Rice - Sob calculate korun!</p>
+        </div>
+        
+        <div class="card">
+            <div class="card-title">
+                <span>🍽️</span> Khabar Select Korun
+            </div>
+            <div class="food-selector">
+                <div class="food-btn active" data-food="egg">🥚 Dim</div>
+                <div class="food-btn" data-food="chicken">🍗 Chicken</div>
+                <div class="food-btn" data-food="rice">🍚 Rice</div>
+            </div>
+            
+            <div class="card-title" id="sizeTitle">
+                <span>🍳</span> Dim er Size
+            </div>
+            <div class="egg-selector" id="eggSelector">
+                <div class="egg-btn active" data-weight="43" data-name="Choto (S)">Choto<br><small>43-53g</small></div>
+                <div class="egg-btn" data-weight="58" data-name="Medium (M)">Medium<br><small>53-63g</small></div>
+                <div class="egg-btn" data-weight="68" data-name="Boro (L)">Boro<br><small>63-73g</small></div>
+                <div class="egg-btn" data-weight="78" data-name="Extra Boro (XL)">XL<br><small>73g+</small></div>
+            </div>
+            
+            <div class="input-group">
+                <label>⚖️ Weight (grams)</label>
+                <div class="input-wrapper">
+                    <input type="number" id="weight" placeholder="58" value="58">
+                    <span class="unit">grams</span>
+                </div>
+            </div>
+            
+            <div class="input-group">
+                <label>🔢 Quantity</label>
+                <div class="input-wrapper">
+                    <input type="number" id="quantity" placeholder="3" value="3" min="1">
+                    <span class="unit">piece</span>
+                </div>
+            </div>
+            
+            <button class="btn" onclick="calculate()">📊 Calculate Nutrition</button>
+        </div>
+        
+        <div class="card results" id="results">
+            <div class="card-title">
+                <span>📈</span> Nutrition Report
+            </div>
+            
+            <div class="macro-grid">
+                <div class="macro-card calories-card">
+                    <div class="macro-icon">🔥</div>
+                    <div class="macro-value" id="calories">0</div>
+                    <div class="macro-label">Calories (kcal)</div>
+                </div>
+                <div class="macro-card protein-card">
+                    <div class="macro-icon">💪</div>
+                    <div class="macro-value" id="protein">0</div>
+                    <div class="macro-label">Protein (g)</div>
+                </div>
+                <div class="macro-card fat-card">
+                    <div class="macro-icon">🥑</div>
+                    <div class="macro-value" id="fat">0</div>
+                    <div class="macro-label">Fat (g)</div>
+                </div>
+                <div class="macro-card carbs-card">
+                    <div class="macro-icon">🍞</div>
+                    <div class="macro-value" id="carbs">0</div>
+                    <div class="macro-label">Carbs (g)</div>
+                </div>
+            </div>
+            
+            <div class="daily-target">
+                <h4>🎯 Daily Target e Koto %?</h4>
+                <div class="target-item">
+                    <span>Protein (150g target):</span>
+                    <span id="proteinPercent">0%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill protein-progress" id="proteinBar" style="width: 0%"></div>
+                </div>
+                <div class="target-item" style="margin-top: 10px;">
+                    <span>Calories (2500 target):</span>
+                    <span id="calPercent">0%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill fat-progress" id="calBar" style="width: 0%"></div>
+                </div>
+            </div>
+            
+            <div class="info-section">
+                <h3>💡 Gym Tips</h3>
+                <p id="tips">Boiled egg best for muscle building!</p>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-title">
+                <span>📋</span> Nutrition Reference Table
+            </div>
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid rgba(233, 69, 96, 0.5);">
+                            <th style="padding: 10px; text-align: left; color: #e94560;">Food</th>
+                            <th style="padding: 10px; text-align: center; color: #e94560;">Per 100g</th>
+                            <th style="padding: 10px; text-align: center; color: #e94560;">Calories</th>
+                            <th style="padding: 10px; text-align: center; color: #e94560;">Protein</th>
+                        </tr>
+                    </thead>
+                    <tbody id="refTable">
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                            <td style="padding: 10px;">🥚 Boiled Egg</td>
+                            <td style="padding: 10px; text-align: center;">100g</td>
+                            <td style="padding: 10px; text-align: center;">128 kcal</td>
+                            <td style="padding: 10px; text-align: center;">12.3g</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                            <td style="padding: 10px;">🍗 Chicken Breast</td>
+                            <td style="padding: 10px; text-align: center;">100g</td>
+                            <td style="padding: 10px; text-align: center;">165 kcal</td>
+                            <td style="padding: 10px; text-align: center;">31g</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px;">🍚 White Rice</td>
+                            <td style="padding: 10px; text-align: center;">100g</td>
+                            <td style="padding: 10px; text-align: center;">130 kcal</td>
+                            <td style="padding: 10px; text-align: center;">2.7g</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Data Source: USDA | Made for Gym Bros</p>
+        </div>
+    </div>
+    
+    <script>
+        const FOOD_DATA = {
+            egg: {
+                name: "Dim",
+                per100g: { calories: 128, protein: 12.3, fat: 8.8, carbs: 0.2 },
+                sizes: true,
+                defaultWeight: 58,
+                tips: "Boiled egg best for muscle building! Raw egg er protein 50% absorb hoy, kintu boiled egg er protein 90%+ absorb hoy."
+            },
+            chicken: {
+                name: "Chicken Breast",
+                per100g: { calories: 165, protein: 31, fat: 3.6, carbs: 0 },
+                sizes: false,
+                defaultWeight: 100,
+                tips: "Chicken breast = best protein source! 100g te 31g protein. Grill korle oil kom lage."
+            },
+            rice: {
+                name: "White Rice",
+                per100g: { calories: 130, protein: 2.7, fat: 0.3, carbs: 28 },
+                sizes: false,
+                defaultWeight: 150,
+                tips: "Rice = energy source. Post-workout khao for glycogen refill. Brown rice better for cutting."
+            }
+        };
+        
+        let currentFood = 'egg';
+        
+        document.querySelectorAll('.food-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.food-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentFood = this.dataset.food;
+                updateUI();
+            });
+        });
+        
+        document.querySelectorAll('.egg-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.egg-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                document.getElementById('weight').value = this.dataset.weight;
+            });
+        });
+        
+        function updateUI() {
+            const data = FOOD_DATA[currentFood];
+            document.getElementById('sizeTitle').innerHTML = `<span>🍳</span> ${data.name} er Size`;
+            document.getElementById('weight').value = data.defaultWeight;
+            
+            if (data.sizes) {
+                document.getElementById('eggSelector').style.display = 'flex';
+            } else {
+                document.getElementById('eggSelector').style.display = 'none';
+            }
+        }
+        
+        function calculate() {
+            const weight = parseFloat(document.getElementById('weight').value) || 58;
+            const quantity = parseInt(document.getElementById('quantity').value) || 1;
+            const data = FOOD_DATA[currentFood];
+            
+            const ratio = weight / 100;
+            const total = {
+                calories: Math.round(data.per100g.calories * ratio * quantity * 10) / 10,
+                protein: Math.round(data.per100g.protein * ratio * quantity * 10) / 10,
+                fat: Math.round(data.per100g.fat * ratio * quantity * 10) / 10,
+                carbs: Math.round(data.per100g.carbs * ratio * quantity * 10) / 10
+            };
+            
+            animateValue('calories', 0, total.calories, 500);
+            animateValue('protein', 0, total.protein, 500);
+            animateValue('fat', 0, total.fat, 500);
+            animateValue('carbs', 0, total.carbs, 500);
+            
+            const proteinTarget = 150;
+            const calTarget = 2500;
+            const proteinPercent = Math.round((total.protein / proteinTarget) * 100);
+            const calPercent = Math.round((total.calories / calTarget) * 100);
+            
+            document.getElementById('proteinPercent').textContent = proteinPercent + '%';
+            document.getElementById('calPercent').textContent = calPercent + '%';
+            document.getElementById('proteinBar').style.width = Math.min(proteinPercent, 100) + '%';
+            document.getElementById('calBar').style.width = Math.min(calPercent, 100) + '%';
+            
+            document.getElementById('tips').textContent = data.tips;
+            document.getElementById('results').classList.add('show');
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        function animateValue(id, start, end, duration) {
+            const obj = document.getElementById(id);
+            const range = end - start;
+            const stepTime = Math.max(Math.abs(Math.floor(duration / range)), 50);
+            let startTime = new Date().getTime();
+            let endTime = startTime + duration;
+            let timer;
+            
+            function run() {
+                let now = new Date().getTime();
+                let remaining = Math.max((endTime - now) / duration, 0);
+                let value = Math.round(end - (remaining * range));
+                obj.innerHTML = value;
+                if (value == end) {
+                    clearInterval(timer);
+                    obj.innerHTML = end.toFixed(1);
+                }
+            }
+            
+            timer = setInterval(run, stepTime);
+            run();
+        }
+        
+        window.onload = function() {
+            calculate();
+        };
+    </script>
+</body>
+</html>
