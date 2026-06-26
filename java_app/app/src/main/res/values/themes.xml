@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.GymNutrition" parent="Theme.AppCompat.Light.DarkActionBar">
+        <item name="colorPrimary">#e94560</item>
+        <item name="colorPrimaryDark">#0d0d1a</item>
+        <item name="colorAccent">#4ecdc4</item>
+        <item name="android:windowBackground">#0d0d1a</item>
+    </style>
+</resources>
